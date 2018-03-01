@@ -10083,7 +10083,7 @@ int djangosha1_parse_hash (u8 *input_buf, u32 input_len, hash_t *hash_buf, MAYBE
 
 int djangopbkdf2_parse_hash (u8 *input_buf, u32 input_len, hash_t *hash_buf, MAYBE_UNUSED hashconfig_t *hashconfig)
 {
-  if ((input_len < DISPLAY_LEN_MIN_10000) || (input_len > DISPLAY_LEN_MAX_10000)) return (PARSER_GLOBAL_LENGTH);
+  //if ((input_len < DISPLAY_LEN_MIN_10000) || (input_len > DISPLAY_LEN_MAX_10000)) return (PARSER_GLOBAL_LENGTH);
 
   if (memcmp (SIGNATURE_DJANGOPBKDF2, input_buf, 14) != 0) return (PARSER_SIGNATURE_UNMATCHED);
 
@@ -10104,6 +10104,7 @@ int djangopbkdf2_parse_hash (u8 *input_buf, u32 input_len, hash_t *hash_buf, MAY
   if (iter < 1) return (PARSER_SALT_ITERATION);
 
   salt->salt_iter = iter - 1;
+  salt->salt_iter2 = iter - 1;
 
   u8 *salt_pos = (u8 *) strchr ((const char *) iter_pos, '$');
 
@@ -24058,7 +24059,9 @@ int hashconfig_init (hashcat_ctx_t *hashcat_ctx)
     case 10000:  hashconfig->hash_type      = HASH_TYPE_SHA256;
                  hashconfig->salt_type      = SALT_TYPE_EMBEDDED;
                  hashconfig->attack_exec    = ATTACK_EXEC_OUTSIDE_KERNEL;
-                 hashconfig->opts_type      = OPTS_TYPE_PT_GENERATE_LE;
+                 hashconfig->opts_type      = OPTS_TYPE_PT_GENERATE_LE
+                                             | OPTS_TYPE_INIT2
+                                             | OPTS_TYPE_LOOP2;
                  hashconfig->kern_type      = KERN_TYPE_PBKDF2_SHA256;
                  hashconfig->dgst_size      = DGST_SIZE_4_32;
                  hashconfig->parse_func     = djangopbkdf2_parse_hash;
@@ -24260,7 +24263,8 @@ int hashconfig_init (hashcat_ctx_t *hashcat_ctx)
                  hashconfig->st_pass        = ST_PASS_HASHCAT_PLAIN;
                  break;
 
-    case 10900:  hashconfig->hash_type      = HASH_TYPE_PBKDF2_SHA256;
+    //case 10900:  hashconfig->hash_type      = HASH_TYPE_PBKDF2_SHA256;
+    case 10900:  hashconfig->hash_type      = HASH_TYPE_SHA256;
                  hashconfig->salt_type      = SALT_TYPE_EMBEDDED;
                  hashconfig->attack_exec    = ATTACK_EXEC_OUTSIDE_KERNEL;
                  hashconfig->opts_type      = OPTS_TYPE_PT_GENERATE_LE
@@ -26796,6 +26800,7 @@ void hashconfig_benchmark_defaults (hashcat_ctx_t *hashcat_ctx, salt_t *salt, vo
     case  9600:  salt->salt_iter  = ROUNDS_OFFICE2013;
                  break;
     case 10000:  salt->salt_iter  = ROUNDS_DJANGOPBKDF2;
+                 salt->salt_iter2 = 10000;
                  break;
     case 10300:  salt->salt_iter  = ROUNDS_SAPH_SHA1 - 1;
                  break;
