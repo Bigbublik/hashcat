@@ -16,32 +16,29 @@
 #define COMPARE_S "inc_comp_single.cl"
 #define COMPARE_M "inc_comp_multi.cl"
 
-DECLSPEC u8 int_to_base64 (const u8 c)
+__constant u8a  base64_table[0x40] =
 {
-  const u8 tbl[0x40] =
-  {
     0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4e, 0x4f, 0x50,
     0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66,
     0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6e, 0x6f, 0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76,
     0x77, 0x78, 0x79, 0x7a, 0x30, 0x31, 0x32, 0x33, 0x34, 0x35, 0x36, 0x37, 0x38, 0x39, 0x2b, 0x2f,
-  };
-
-  return tbl[c];
-}
+};
 
 
-DECLSPEC void base64_encode (const u8 *in_buf, const size_t in_len, u8 *out_buf)
+DECLSPEC void base64_encode (const u8 *in_buf, const u32 in_len, u8 *out_buf)
 {
   const u8 *in_ptr = in_buf;
 
   u8 *out_ptr = out_buf;
 
-  for (size_t i = 0; i < in_len; i += 3)
+  u32 i;
+
+  for (i = 0; i < in_len; i += 3)
   {
-    const u8 out_val0 = int_to_base64 (                            ((in_ptr[0] >> 2) & 0x3f));
-    const u8 out_val1 = int_to_base64 (((in_ptr[0] << 4) & 0x30) | ((in_ptr[1] >> 4) & 0x0f));
-    const u8 out_val2 = int_to_base64 (((in_ptr[1] << 2) & 0x3c) | ((in_ptr[2] >> 6) & 0x03));
-    const u8 out_val3 = int_to_base64 (                            ((in_ptr[2] >> 0) & 0x3f));
+    const u8 out_val0 = base64_table [                             ((in_ptr[0] >> 2) & 0x3f)];
+    const u8 out_val1 = base64_table [((in_ptr[0] << 4) & 0x30) | ((in_ptr[1] >> 4) & 0x0f)];
+    const u8 out_val2 = base64_table [((in_ptr[1] << 2) & 0x3c) | ((in_ptr[2] >> 6) & 0x03)];
+    const u8 out_val3 = base64_table [                            ((in_ptr[2] >> 0) & 0x3f)];
 
     out_ptr[0] = out_val0 & 0x7f;
     out_ptr[1] = out_val1 & 0x7f;
