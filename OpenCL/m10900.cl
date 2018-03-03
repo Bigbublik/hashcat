@@ -25,7 +25,7 @@ __constant u8a  base64_table[0x40] =
 };
 
 
-DECLSPEC void base64_encode (const u8 *in_buf, const u32 in_len, u8 *out_buf)
+DECLSPEC void base64_encode (const u8 *in_buf, u8 *out_buf)
 {
   const u8 *in_ptr = in_buf;
 
@@ -33,7 +33,7 @@ DECLSPEC void base64_encode (const u8 *in_buf, const u32 in_len, u8 *out_buf)
 
   u32 i;
 
-  for (i = 0; i < in_len; i += 3)
+  for (i = 0; i < 32; i += 3)
   {
     const u8 out_val0 = base64_table [                             ((in_ptr[0] >> 2) & 0x3f)];
     const u8 out_val1 = base64_table [((in_ptr[0] << 4) & 0x30) | ((in_ptr[1] >> 4) & 0x0f)];
@@ -49,14 +49,7 @@ DECLSPEC void base64_encode (const u8 *in_buf, const u32 in_len, u8 *out_buf)
     out_ptr += 4;
   }
 
-  int out_len = (int) (((0.5 + in_len) * 8) / 6); // ceil (in_len * 8 / 6)
-
-  while (out_len % 4)
-  {
-    out_buf[out_len] = '=';
-
-    out_len++;
-  }
+  out_buf[43] = '=';
 }
 
 DECLSPEC void hmac_sha256_run_V (u32x w0[4], u32x w1[4], u32x w2[4], u32x w3[4], u32x ipad[8], u32x opad[8], u32x digest[8])
@@ -208,7 +201,7 @@ __kernel void m10900_init2 (__global pw_t *pws, __global const kernel_rule_t *ru
   digest_buf[7] = swap32_S (tmps[gid].out[7]);
 
   u8 tmp_buf[256] = { 0 };
-  base64_encode ((const u8 *) digest_buf, 32, (u8 *) tmp_buf);
+  base64_encode ((const u8 *) digest_buf, (u8 *) tmp_buf);
 
   sha256_hmac_ctx_t sha256_hmac_ctx;
 
